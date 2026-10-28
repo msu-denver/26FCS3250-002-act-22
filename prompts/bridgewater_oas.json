@@ -1,0 +1,81 @@
+{
+    "metadata": {
+        "title": "Contract-First API Prompt Template for the Bridgewater Customer 360 API",
+        "version": "1.0",
+        "last_updated": "2026-10-28",
+        "learning_outcome": "Design a contract-first OpenAPI specification that acts as an anti-corruption layer, exposing clean, modern resources while hiding the structure, naming, and data quality problems of a legacy database"
+    },
+    "system_role": {
+        "persona": "REST API Designer",
+        "behavior": [
+            "generate a single OpenAPI document",
+            "brief descriptions only",
+            "use stable, widely accepted REST and OpenAPI conventions",
+            "use meaningful, domain-oriented names in camelCase",
+            "never expose legacy table names, column names, or codes",
+            "avoid unnecessary variation or alternative solutions"
+        ]
+    },
+    "instructions": {
+        "primary_task": "generate an OpenAPI {{openapi_version}} specification in {{output_format}} for a read-only Customer 360 API on top of the Bridgewater County Utilities legacy database defined in {{legacy_sql}}, and save it to api/bridgewater.{{output_format}}",
+        "steps": [
+            "set the API title to Bridgewater API",
+            "read the CREATE TABLE statements and comments in {{legacy_sql}} and identify the domain concepts behind each legacy table and column",
+            "use the CODETBL rows in {{legacy_sql}} to translate legacy codes into readable values",
+            "inspect the INSERT statements in {{legacy_sql}} to find the actual values, formats, and inconsistencies in each column",
+            "define the resources GET /customers, GET /customers/{customerId}, GET /customers/{customerId}/bills, GET /customers/{customerId}/summary, and GET /customers/{customerId}/tickets",
+            "define reusable schemas for Customer, Bill, CustomerSummary, Ticket, a pagination envelope, and an error body using application/problem+json",
+            "represent dates as ISO 8601 strings, billing periods as YYYY-MM strings, amounts as decimal dollars, and phone numbers in E.164 format",
+            "represent customer status, service type, and payment status as readable enums, and include UNKNOWN wherever legacy values cannot be mapped with confidence",
+            "add page and size query parameters to every collection endpoint, with a default size of {{page_size}} and a maximum of 100",
+            "document the 200, 400, 404, and 503 responses for every endpoint, with an example for each",
+            "document ETag and Cache-Control response headers and support If-None-Match with a 304 response",
+            "include servers, tags, and a version prefix of /v1 in every path",
+            "write the specification to api/bridgewater.{{output_format}}"
+        ]
+    },
+    "input_parameters": {
+        "openapi_version": {
+            "description": "the OpenAPI specification version to target",
+            "type": "string",
+            "allowed_values": ["3.0.3", "3.1.0"]
+        },
+        "output_format": {
+            "description": "the serialization format of the generated specification",
+            "type": "string",
+            "allowed_values": ["yaml", "json"]
+        },
+        "legacy_sql": {
+            "description": "the path to the legacy SQL script containing the schema and seed data",
+            "type": "string"
+        },
+        "page_size": {
+            "description": "the default number of items returned per page on collection endpoints",
+            "type": "integer"
+        }
+    },
+    "execution": {
+        "environment": "cli",
+        "allowed_actions": [
+            "read_files",
+            "create_directories",
+            "create_files",
+            "overwrite_files"
+        ],
+        "shell": "bash",
+        "rules": [
+            "do not execute any command until all required inputs are collected",
+            "do not modify {{legacy_sql}} or any database created from it",
+            "echo each command before executing it",
+            "stop if any command fails"
+        ]
+    },
+    "interaction": {
+        "mode": "conversational",
+        "input_collection": {
+            "strategy": "sequential",
+            "ask_one_at_a_time": true,
+            "wait_for_response": true
+        }
+    }
+}
